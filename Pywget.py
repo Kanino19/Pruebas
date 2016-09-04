@@ -14,8 +14,8 @@ parser = ArgumentParser(prog = 'Descargas',
 	description='Descargar de Mangas',	
 	epilog = '''Copyright 2016
 	Recomendaciones Iniciales:
-	-> Configurar obtencion de paquetes html con link
-	-> Confiurar obtencion de link a descargar''',
+	-> Configurar la obtencion de paquetes html con link
+	-> Configurar la obtencion de link a descargar''',
 	version = '2.0')
 
 	# Carpeta
