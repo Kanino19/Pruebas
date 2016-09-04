@@ -1,18 +1,24 @@
 #! /usr/bin/env python
 #! /usr/bin/env bash
+#------------------Paquetes----------------
+#------------------------------------------
 from argparse import ArgumentParser
 import os 
 import sys 
 import subprocess
+#------------------------------------------
 
-#lectura de parametros
-
+#-----------Lectura de parametros----------
+#------------------------------------------
 parser = ArgumentParser(prog = 'Descargas',
 	description='Descargar de Mangas',	
-	epilog = 'Copyright 2016',
+	epilog = '''Copyright 2016
+	Recomendaciones Iniciales:
+	-> Configurar obtencion de paquetes html con link
+	-> Confiurar obtencion de link a descargar''',
 	version = '2.0')
 
-#Carpeta
+	# Carpeta
 default_carpeta = "OP"
 parser.add_argument("-c", "--carpeta", 
 	action="store",
@@ -20,7 +26,7 @@ parser.add_argument("-c", "--carpeta",
 	default=default_carpeta,
 	help="Carpeta en donde se guardara los archivos")
 
-#Fichero
+	# Fichero
 default_link = "False"
 parser.add_argument("-l", "--link", 
 	action="store",
@@ -28,7 +34,7 @@ parser.add_argument("-l", "--link",
 	default=default_link,
 	help="link de donde comenzar a descargar")
 
-#Cantidad de descargas
+	# Cantidad de descargas
 default_num = 0
 parser.add_argument("-n", "--num", 
 	action="store",
@@ -37,74 +43,111 @@ parser.add_argument("-n", "--num",
 	default=default_num,
 	help="Numero de imagenes")
 
-#parsear los parametros
+# Parsear los parametros
 options = parser.parse_args()
-
-# funciones
 #------------------------------------------
+
+#-----------------Funciones----------------
+#------------------------------------------
+def ObtenerHtml(lineas):
+	# Configuracion para encontrar el siguiente link en el html
+	linea1 = lineas[14]
+	linea1 = linea1.split('id="next"')[1]
+	linea1 = linea1.split("href=")[1]
+	linea1 = linea1.split('>')[0]
+	options.link = linea1.split('"')[1]
+
+
+def ObtenerLink(lineas):
+	# Configuracion para encontrar el link de la imagen a descargar
+	linea2 = lineas[14]
+	linea2 = linea2.split('id="img"')[1]
+	linea2 = linea2.split("src=")[1]
+	linea2 = linea2.split(' ')[0]
+	linea2 = linea2.split('"')[1]
+	return linea2
+
 def Link():
+	# Verificar si se ingreso el link inicial para descargar
 	if options.link == 'False':
 		print "Ingrese el link inicial para comenzar la descarga"
-		return 0
+		exit(0)
+
 	else:
+		print '-- Descargando link . . . Espere . . . --'
+		contador = 0
+		rango = range(0,options.num,options.num/5)
 		urls = []
 		for i in range(options.num):
-			#Extraer comando y nombre
-			aux_url = "wget %s"%options.link
-			
+			# Generar comando de descargar
+			aux_url = "wget %s -o log.txt"%options.link
+
+			# Extraer nombre del html
 			name = options.link.split('/')[-1]
-			print aux_url
-			print name
-			#Descargar
+
+			# Descargar html
 			subprocess.call(aux_url,shell=True)
 			
-			#Abrir y extraer aux_url y urls_img
+			# Abrir y extraer aux_url y urls_img
 			f = open(name,"r")
 			lineas = f.readlines()
-				#urls
-			linea1 = lineas[14]
-			linea1 = linea1.split('id="next"')[1]
-			linea1 = linea1.split("href=")[1]
-			linea1 = linea1.split('>')[0]
-			options.link = linea1.split('"')[1]
-				#urls_img
-			linea2 = lineas[14]
-			linea2 = linea2.split('id="img"')[1]
-			linea2 = linea2.split("src=")[1]
-			linea2 = linea2.split(' ')[0]
-			urls.append(linea2.split('"')[1])
-
-			#Cerrar archivo
 			f.close()
 
-			#Eliminar archivo descargado
+			# Extraer aux_url y urls_img
+			ObtenerHtml(lineas)
+			
+			# Agregar urls_img	
+			urls.append(ObtenerLink(lineas))
+			
+			# Eliminar archivo descargado
 			os.remove(name)
-		return urls
+
+		# Guargar los urls en el archivo link_manga.txt
+		g = open('link_manga.txt','w')
+		urls = '\n'.join(urls)
+		g.write(urls)
+		g.close()
+		# Medida tomada en caso la descarga se cancele
 
 def Descarga():
+	Sedescarga = True
+	# Posicionarse en el home
+	if os.getcwd() != '/home/jkahn/':
+		os.chdir("/home/jkahn/")
 
-	
+	# La carpeta existe
+	if os.path.exists('/home/jkahn/'+options.carpeta) == False :
+		# Creamos la carpeta
+		os.mkdir(options.carpeta)
+		# Ingresamos a la carpeta
+		os.chdir('/home/jkahn/'+options.carpeta)
+		# Corremos Link()
+		Link()
+
+	else :
+		# Ingresamos a la carpeta
+		os.chdir('/home/jkahn/'+options.carpeta)
+		if os.path.exists('/home/jkahn/'+options.carpeta+'/link_manga.txt') == False:
+			Link()
+
+	if Sedescarga:
+		# Comando de terminal
+		comando = "wget -c -i %s"%'link_manga.txt'
+		RunCommands(comando)
+			
 
 def RunCommands(commands):
-	for cmd in commands:
+	# Si es un solo comando
+	if type(commands) == str:
 		print "Running Command"
-		subprocess.call(cmd, shell=True)
+		subprocess.call(commands, shell=True)
 
-def main():
-		os.chdir("/home/jkahn/")
-		downland = []
-		urls = Link()
-		if urls!=0:
-			for url in urls:
-				comando = "wget -c %s"%url
-				downland.append(comando)
-			try :
-				os.mkdir(options.carpeta)
-				os.chdir("/home/jkahn/"+options.carpeta)
-			except :
-				os.chdir("/home/jkahn/"+options.carpeta)
-			RunCommands(downland)
+	# Si es un array de comandos
+	else :
+		for cmd in commands:
+			print "Running Command"
+			subprocess.call(cmd, shell=True)
 #------------------------------------------
 
 if __name__ == '__main__':
-	main()
+	Descarga()
