@@ -38,9 +38,9 @@ class Reactor():
 		self.y = odeint(Fermenter, self.x0, self.t, 
 			args=(self.k1, self.k2, self.mu1max, self.mu2max, self.KN, self.KE, self.KS, self.x_0, self.Qi, self.V))
 
-	def CO2(self,t):
+	def CO2(self):
 		# Simulation calculation of CO2
-		m = len(t)
+		m = len(self.t)
 		yB = self.y[-m:,0]
 		yN = self.y[-m:,1]
 		yE = self.y[-m:,2]
@@ -58,7 +58,6 @@ def Fermenter(x, t, k1, k2, mu1max, mu2max, KN, KE, KS, x_0, Qi, V):
 	E = x[2]
 	S = x[3]
 	CO = x[4]
-	#V = 1#x[5]
 
 	# Array
 	dx = np.zeros(6)
@@ -76,7 +75,7 @@ def Fermenter(x, t, k1, k2, mu1max, mu2max, KN, KE, KS, x_0, Qi, V):
 	dx[5] = 0
 	return dx
 
-def Plot(t, y, Data):
+def PlotIndividual(t, y, Data):
 	# Sort Data
 	DataT = Data[:,0]
 	DataB = Data[:,6]
@@ -84,8 +83,7 @@ def Plot(t, y, Data):
 	DataE = Data[:,3]
 	DataS = Data[:,4]
 	DataCO2 = Data[:,5]/100.
-	#DataV = Data[:,?] 
-
+	
 	# Plotting in several graphics
 		# Biomass
 	plt.figure(1)
@@ -129,6 +127,47 @@ def Plot(t, y, Data):
 	plt.legend()
 
 	plt.show()
+
+def PlotAll(t,y,Data):
+	# Sort Data
+	DataT = Data[:,0]
+	DataB = Data[:,6]
+	DataN = Data[:,2]/1000.
+	DataE = Data[:,3]
+	DataS = Data[:,4]
+	DataCO2 = Data[:,5]/100.
+	
+	# Plotting in several graphics
+		# Biomass
+	plt.figure(1)
+	plt.title('Wine Fermentation')
+	plt.xlabel('Time')
+	#plt.ylabel('Biomass concentration')hacer la scala
+	plt.plot(t,y[:,0], label = 'Biomass')
+	plt.plot(DataT,DataB,'o',label='Biomass(Data)')
+
+		# Nitrogen
+	#plt.ylabel('Nitrogen concentration')
+	plt.plot(t,y[:,1], label = 'Nitrogen')
+	plt.plot(DataT,DataN, 'o',label='Nitrogen(Data)')
+
+		#Ethanol
+	#plt.ylabel('Ethanol concentration')
+	plt.plot(t,y[:,2], label = 'Ethanol')
+	plt.plot(DataT,DataE,'o', label = 'Ethanol(Data)')
+
+		#Sugar
+	#plt.ylabel('Sugar concentration')
+	plt.plot(t,y[:,3], label = 'Sugar')
+	plt.plot(DataT,DataS,'o', label = 'Sugar(Data)')
+
+		#CO2
+	#plt.ylabel('CO2 concentration')
+	plt.plot(t,y[:,4], label = 'CO2')
+	plt.plot(DataT,DataCO2,'o', label = 'CO2(Data)')
+	plt.legend()
+
+	plt.show()
 # ----------------------------------------
 
 
@@ -153,38 +192,33 @@ if __name__ == '__main__':
 
 	# Initial Condition for each reactor4
 	# [B, N, E, S, CO2]
-	x0r1 = [0.03, .43, 0., 188., 0., 10.0]
-	x0r2 = [0.03, .43, 0., 188., 0., 10.0]
-	x0r3 = [0.03, .43, 0., 188., 0., 10.0]
-	x0r4 = [0.03, .43, 0., 188., 0., 10.0]
+	x0r1 = [0.03, .43, 0., 188., 0., 5.0]
+	#x0r2 = [0.03, .43, 0., 188., 0., 10.0]
+	#x0r3 = [0.03, .43, 0., 188., 0., 10.0]
+	#x0r4 = [0.03, .43, 0., 188., 0., 10.0]
 
 	# Initial concentration for each reactor
-	x_0r1 = [0., .43, 0., 188., 0., 10.0]
-	x_0r2 = [0., .43, 0., 188., 0., 10.0]
-	x_0r3 = [0., .43, 0., 188., 0., 10.0]
-	x_0r4 = [0., .43, 0., 188., 0., 10.0]
+	x_0r1 = [0.03, .43, 0., 188., 0., 5.0]
+	#x_0r2 = [0., .43, 0., 188., 0., 10.0]
+	#x_0r3 = [0., .43, 0., 188., 0., 10.0]
+	#x_0r4 = [0., .43, 0., 188., 0., 10.0]
 
 	# Volumen
 	V = [1., 1., 1., 1.]
 
 	# Volumen rate
-	Qi = [.10, .8, .6, .4]
+	Qi = [.05, .8, .6, .4]
 
 	# Create Reactors
 	Rea1 = Reactor(t, x0r1, mu, k, K, x_0r1, Qi[0], V[0])
-	Rea2 = Reactor(t, x0r1, mu, k, K, x_0r1, Qi[1], V[1])
-	Rea3 = Reactor(t, x0r1, mu, k, K, x_0r1, Qi[2], V[2])
-	Rea4 = Reactor(t, x0r1, mu, k, K, x_0r1, Qi[3], V[3])
-
-	# Multi-stage Continous Fermentation Wine		
-
+	#Rea2 = Reactor(t, x0r1, mu, k, K, x_0r1, Qi[1], V[1])
+	#Rea3 = Reactor(t, x0r1, mu, k, K, x_0r1, Qi[2], V[2])
+	#Rea4 = Reactor(t, x0r1, mu, k, K, x_0r1, Qi[3], V[3])
 	
-	# Concatenate arrays
-	#y = np.concatenate((Env1.y, Env2.y, Env3.y, Env4.y), axis=0)
-
 	# Load the data
-	#Data = np.loadtxt('batch.txt')
+	Data = np.loadtxt('batch.txt')
 
 	# Graph
-	#Plot(t,y,Data)
+	PlotIndividual(t,Rea1.y,Data)
+	PlotAll(t,Rea1.y,Data)
 # ----------------------------------------
