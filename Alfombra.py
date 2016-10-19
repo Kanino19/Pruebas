@@ -48,19 +48,21 @@ pX, pY = four(pX,pY,sw,sh)
 # Escalar
 Img0 = pygame.transform.scale(Img,(sw/3,sh/3))
 
-
-
-# Bucle
-
-for j in range(6):
-	screen.fill(white)
-	for i in range(8):
-		screen.blit(Img0,(pX[i],pY[i]))
-	Img0 = screen.subsurface(rect).copy()
-	Img0 = pygame.transform.scale(Img0,(sw/3,sh/3))
-	pygame.display.update()
-
 while not Finish:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			Finish = True
+
+		if event.type == pygame.KEYDOWN:
+			if event.key == pygame.K_RIGHT:
+				screen.fill(white)
+				for i in range(8):
+					screen.blit(Img0,(pX[i],pY[i]))
+				Img0 = screen.subsurface(rect).copy()
+				Img0 = pygame.transform.scale(Img0,(sw/3,sh/3))
+			if event.key == pygame.K_LEFT:
+				Img0 = pygame.transform.scale(Img,(sw,sh))
+				screen.fill(white)
+				screen.blit(Img0,(0,0))
+				Img0 = pygame.transform.scale(Img,(sw/3,sh/3))
+		pygame.display.update()
